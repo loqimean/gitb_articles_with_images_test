@@ -1,6 +1,13 @@
--image = posting.article_with_image
--if image
+- posting_presenter = PostingPresenter.new(posting) # it would be better to place this variable in controller to have clear code
+- image = posting_presenter.article_with_image
+
+/ here is an issue, if image doesn't contain any attribute for the image, it will return {} (lines 12, 18, 23, 25, 43 of app/presenters/posting_presenter.rb)
+/ an ampty hash, so, it's always true and this code will be rendered,
+/ better to use here .present? method because it checks for this and any other cases like this and returns false.
+- if image.present?
   figure id="img_#{posting.id}"
     img src="#{image['src']}" alt="#{image['alt'] || posting.title}" data-image="#{image['data-image']}"
+/ here would be fine to use dom_id to generate id for the record instead of manual set up
 .teaser id="teaser_#{posting.id}"
-  => posting_snippet(posting) # uses HTML_Truncator gem and calls .html_safe on the output
+  / also, using html_safe for user output isn't safe, because it may cause XSS attacks, it's better to use helper called sanitize or simple_format (I am not sure if HTML_Truncator uses something like this)
+  => simple_format(posting_snippet(posting)) # uses HTML_Truncator gem and calls .html_safe on the output
